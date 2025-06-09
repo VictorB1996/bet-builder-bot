@@ -1,0 +1,17 @@
+website:
+  start_url: "https://www.casapariurilor.ro/"
+  football_events_url: "https://www.casapariurilor.ro/pariuri-online/fotbal?tab=matches&filter=tomorrow"
+  bet_events_minimum_start_hour: 1
+  max_number_of_bets_per_day: 5
+  minimum_hours_between_matches: 2
+  maximum_bet_odd: 1.05
+  bet_type: "Victorie fara egal"
+  balance_endpoint: "https://www.casapariurilor.ro/api/user/info"
+  categories_endpoint: "https://api.casapariurilor.ro/offer/structure/api/v1_0/prematch/sport/ufo:sprt:00/categories?timeFilter=tomorrow"
+  leagues_ids_endpoint: "https://api.casapariurilor.ro/offer/structure/api/v1_0/prematch/sport/ufo:sprt:00/tournaments?timeFilter=tomorrow"
+  fixtures_from_league_endpoint: "https://api.casapariurilor.ro/offer/structure/api/v1_0/prematch/tournament/{}/fixtures?timeFilter=tomorrow"
+  markets_from_fixture_endpoint: "https://api.casapariurilor.ro/offer/markets/api/v1_0/fixture/{}/markets"
+  match_base_url: "https://www.casapariurilor.ro/pariuri-online/fotbal/{}/{}/{}"
+driver:
+  wait_time: 20
+  mandatory_cookies: "auth_token,username_rememberMe,hasAccount,browser_uuid"
