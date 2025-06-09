@@ -19,7 +19,7 @@ variable "aws_lambda_function_name" {
 variable "aws_account_id" {
   description = "The AWS account ID"
   type        = string
-  default     = "905418056526"
+  default     = ""
 }
 
 variable "daily_schedule_expression" {
