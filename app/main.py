@@ -73,15 +73,15 @@ def lambda_handler(event, context):
             matches = matches_scheduler.schedule_matches()
             if len(matches) < 1:
                 send_email(
-                subject=EmailTemplate.SUBJECT_INFO_TYPE,
-                body=EmailTemplate.BODY_INFO_TYPE.format(
-                    f"No suitable matches found for the next day."
-                ),
-                from_email=secrets["from_address"],
-                password=secrets["gmail_app_password"],
-                to_email=secrets["to_address"],
-            )
-            else:    
+                    subject=EmailTemplate.SUBJECT_INFO_TYPE,
+                    body=EmailTemplate.BODY_INFO_TYPE.format(
+                        f"No suitable matches found for the next day."
+                    ),
+                    from_email=secrets["from_address"],
+                    password=secrets["gmail_app_password"],
+                    to_email=secrets["to_address"],
+                )
+            else:
                 send_email(
                     subject=EmailTemplate.SUBJECT_INFO_TYPE,
                     body=EmailTemplate.BODY_INFO_TYPE.format(
