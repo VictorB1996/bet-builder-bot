@@ -24,7 +24,7 @@ def send_email(
     body_content = MIMEText(body, "plain")
     message.attach(body_content)
 
-    if attachment_path and os.path.exists("attachment_path"):
+    if attachment_path and os.path.exists(attachment_path):
         with open(attachment_path, "rb") as f:
             part = MIMEBase("application", "octet-stream")
             part.set_payload(f.read())

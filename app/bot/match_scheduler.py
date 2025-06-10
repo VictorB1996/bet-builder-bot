@@ -31,3 +31,4 @@ class MatchesScheduler:
                     "schedule_name": schedule_name,
                 },
             )
+        return matches

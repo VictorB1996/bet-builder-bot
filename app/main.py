@@ -70,9 +70,29 @@ def lambda_handler(event, context):
 
         if event["trigger_type"] == TriggerType.FIND_MATCHES:
             matches_scheduler = MatchesScheduler(bot=bot)
-            matches_scheduler.schedule_matches()
+            matches = matches_scheduler.schedule_matches()
+            if len(matches) < 1:
+                send_email(
+                subject=EmailTemplate.SUBJECT_INFO_TYPE,
+                body=EmailTemplate.BODY_INFO_TYPE.format(
+                    f"No suitable matches found for the next day."
+                ),
+                from_email=secrets["from_address"],
+                password=secrets["gmail_app_password"],
+                to_email=secrets["to_address"],
+            )
+            else:    
+                send_email(
+                    subject=EmailTemplate.SUBJECT_INFO_TYPE,
+                    body=EmailTemplate.BODY_INFO_TYPE.format(
+                        f"Scheduled {len(matches)} matches for next day."
+                    ),
+                    from_email=secrets["from_address"],
+                    password=secrets["gmail_app_password"],
+                    to_email=secrets["to_address"],
+                )
         elif event["trigger_type"] == TriggerType.PLACE_BET:
-            balance = 5.00
+            balance = 2.5
             print(f"Placing bet with: {balance}")
             bet_placer = BetPlacer(
                 bot=bot,
@@ -84,6 +104,16 @@ def lambda_handler(event, context):
                 event_schedule_name=event["schedule_name"],
             )
             bet_placer.run()
+            send_email(
+                subject=EmailTemplate.SUBJECT_INFO_TYPE,
+                body=EmailTemplate.BODY_INFO_TYPE.format(
+                    f"Placed bet on {bet_placer.market_type_name} with bet amount: {bet_placer.bet_amount}.\n"
+                    + f"URL: {bet_placer.match_url}"
+                ),
+                from_email=secrets["from_address"],
+                password=secrets["gmail_app_password"],
+                to_email=secrets["to_address"],
+            )
     except Exception:
         traceback_path = "/tmp/traceback.txt"
         with open(traceback_path, "w") as f:
@@ -99,6 +129,7 @@ def lambda_handler(event, context):
             to_email=secrets["to_address"],
             attachment_path=traceback_path,
         )
-        delete_schedule(event["schedule_name"])
+        if event.get("schedule_name"):
+            delete_schedule(event["schedule_name"])
 
     return RETURN_BODY
