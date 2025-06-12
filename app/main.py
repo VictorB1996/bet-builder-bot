@@ -54,7 +54,7 @@ def lambda_handler(event, context):
 
         balance = bot.get_available_balance()
         print(f"Available balance: {balance}")
-        if balance < 1.00:
+        if balance < 2.00:
             send_email(
                 subject=EmailTemplate.SUBJECT_ERROR_TYPE,
                 body=EmailTemplate.BODY_ERROR_TYPE.format(
@@ -92,7 +92,6 @@ def lambda_handler(event, context):
                     to_email=secrets["to_address"],
                 )
         elif event["trigger_type"] == TriggerType.PLACE_BET:
-            balance = 2.5
             print(f"Placing bet with: {balance}")
             bet_placer = BetPlacer(
                 bot=bot,
