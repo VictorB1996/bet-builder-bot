@@ -14,4 +14,4 @@ website:
   match_base_url: "https://www.casapariurilor.ro/pariuri-online/fotbal/{}/{}/{}"
 driver:
   wait_time: 20
-  mandatory_cookies: "auth_token,username_rememberMe,hasAccount,browser_uuid"
+  mandatory_cookies: "auth_token,hasAccount,browser_uuid"

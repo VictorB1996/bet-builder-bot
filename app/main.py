@@ -131,5 +131,7 @@ def lambda_handler(event, context):
         )
         if event.get("schedule_name"):
             delete_schedule(event["schedule_name"])
+    finally:
+        bot.close()
 
     return RETURN_BODY
