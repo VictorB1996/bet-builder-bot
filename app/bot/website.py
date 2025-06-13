@@ -175,9 +175,9 @@ class WebsiteBot(BaseBot):
 
             if len(matches_to_bet) > 0:
                 last_bet_match = matches_to_bet[-1]
-                if (
+                if not (
                     fixture["start_time"] - last_bet_match["start_time"]
-                ).total_seconds() // 3600 < hours_between_matches:
+                ).total_seconds() / 3600 >= hours_between_matches:
                     continue
 
             fixture_markets = self.get_markets_from_fixture(fixture)

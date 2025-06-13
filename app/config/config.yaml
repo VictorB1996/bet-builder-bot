@@ -3,7 +3,7 @@ website:
   football_events_url: "https://www.casapariurilor.ro/pariuri-online/fotbal?tab=matches&filter=tomorrow"
   bet_events_minimum_start_hour: 1
   max_number_of_bets_per_day: 5
-  minimum_hours_between_matches: 2
+  minimum_hours_between_matches: 2.5
   maximum_bet_odd: 1.05
   bet_type: "Victorie fara egal"
   balance_endpoint: "https://www.casapariurilor.ro/api/user/info"
