@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from bot.website import WebsiteBot
 from utils.scheduler import create_schedule
 from utils.types import TriggerType
@@ -11,9 +13,10 @@ class MatchesScheduler:
         matches = self.bot.get_matches_to_bet()
         for match in matches:
             schedule_name = f"match-schedule-{match['id']}".replace(":", "-")
+            start_date = match["start_time"] - timedelta(minutes=15)
             create_schedule(
                 schedule_name=schedule_name,
-                start_date=match["start_time"],
+                start_date=start_date,
                 payload={
                     "trigger_type": TriggerType.PLACE_BET,
                     "market_type_name": match["market_type_name"],
