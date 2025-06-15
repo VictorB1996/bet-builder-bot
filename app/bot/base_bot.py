@@ -50,6 +50,7 @@ class BaseBot:
             "https": f"https://{proxy_user}:{proxy_password}@{proxy_host}:{proxy_port}",
         }
         self.session.headers.update(get_headers())
+        self.set_browser_cookies()
 
     def visit_url(self, url: str) -> None:
         """Visit a given URL"""
@@ -119,37 +120,33 @@ class BaseBot:
         """Refresh the current page"""
         self.driver.refresh()
 
-    def get_browser_cookies(self, max_attempts: int = 5) -> dict[str, str]:
+    def set_browser_cookies(self, max_attempts: int = 5) -> None:
         """
-        Get cookies from the browser after authentication.
-        Ensure that some cookies exist before sending them out.
+        Set session cookies from the browser after authentication.
+        Ensure that cookies work by testing the balance endpoint.
         Retry up to `max_attempts` times.
         """
-        cookies = {}
-        mandatory_cookies = self.bot_config["driver"]["mandatory_cookies"].split(",")
-
         for _ in range(max_attempts):
+            self.session.cookies.clear()
             cookies = {
                 cookie["name"]: cookie["value"] for cookie in self.driver.get_cookies()
             }
-            if all(c in cookies.keys() for c in mandatory_cookies):
+            self.session.cookies.update(cookies)
+            response = self.session_send_request(
+                "GET",
+                self.bot_config["website"]["balance_endpoint"]
+            )
+            if response.status_code == 200 and response.json().get("status") == "LOGGED_IN":
                 break
             time.sleep(5)
-
-        if not cookies or not all(c in cookies for c in mandatory_cookies):
+        else:
             raise ValueError("Authentication cookies could not be obtained.")
-        return cookies
 
     def session_send_request(
         self, method: str, url: str, **kwargs
     ) -> requests.models.Response:
         """Send a request using the session with the given method and URL."""
         try:
-            mandatory_cookies = self.bot_config["driver"]["mandatory_cookies"].split(
-                ","
-            )
-            if not all(c in self.session.cookies.keys() for c in mandatory_cookies):
-                self.session.cookies.update(self.get_browser_cookies())
             if method.upper() not in ["GET", "POST"]:
                 raise ValueError("Invalid HTTP method specified.")
             response = self.session.request(method, url, **kwargs)
