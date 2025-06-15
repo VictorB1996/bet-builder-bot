@@ -29,4 +29,6 @@ def login_to_website(bot: BaseBot, username: str, password: str) -> None:
 
     login_confirm_button = bot.get_element(LOGIN_COFIRM_LOGIN)
     bot.click(parent=login_confirm_button)
+
+    bot.set_session_cookies()
     print("Authentication succeeded.")

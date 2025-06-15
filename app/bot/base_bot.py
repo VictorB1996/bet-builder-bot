@@ -50,7 +50,6 @@ class BaseBot:
             "https": f"https://{proxy_user}:{proxy_password}@{proxy_host}:{proxy_port}",
         }
         self.session.headers.update(get_headers())
-        self.set_browser_cookies()
 
     def visit_url(self, url: str) -> None:
         """Visit a given URL"""
@@ -120,7 +119,7 @@ class BaseBot:
         """Refresh the current page"""
         self.driver.refresh()
 
-    def set_browser_cookies(self, max_attempts: int = 5) -> None:
+    def set_session_cookies(self, max_attempts: int = 5) -> None:
         """
         Set session cookies from the browser after authentication.
         Ensure that cookies work by testing the balance endpoint.
