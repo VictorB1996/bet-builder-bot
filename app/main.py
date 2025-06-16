@@ -6,10 +6,10 @@ from bot.website import WebsiteBot
 from bot.bet_placer import BetPlacer
 from bot.match_scheduler import MatchesScheduler
 
-from utils._email import send_email
+from utils._email import EmailSender
 from utils.secrets import get_secret
 from utils.scheduler import delete_all_schedules, delete_schedule
-from utils.types import TriggerType, EmailTemplate
+from utils.types import TriggerType
 
 RETURN_BODY = {"statusCode": 200, "body": ""}
 
@@ -33,6 +33,11 @@ def lambda_handler(event, context):
         clean_tmp()
         secrets = get_secret("bet-builder-secrets")
 
+        email_sender = EmailSender(
+            from_email=secrets["from_address"],
+            password=secrets["gmail_app_password"],
+        )
+
         bot = WebsiteBot(
             app_email=secrets["bet_app_username"],
             app_password=secrets["bet_app_password"],
@@ -43,53 +48,41 @@ def lambda_handler(event, context):
         )
         logged_in = bot.login()
         if not logged_in:
-            send_email(
-                subject=EmailTemplate.SUBJECT_ERROR_TYPE,
-                body=EmailTemplate.BODY_ERROR_TYPE.format("Bot was unable to log in."),
-                from_email=secrets["from_address"],
-                password=secrets["gmail_app_password"],
+            email_sender.send_email(
                 to_email=secrets["to_address"],
+                subject=EmailSender.SUBJECT_ERROR_TYPE,
+                body=EmailSender.BODY_NOT_LOGGED_IN,
             )
             return RETURN_BODY
 
         balance = bot.get_available_balance()
         print(f"Available balance: {balance}")
         if balance < 2.00:
-            send_email(
-                subject=EmailTemplate.SUBJECT_ERROR_TYPE,
-                body=EmailTemplate.BODY_ERROR_TYPE.format(
-                    f"No balance left in account. Available balance - {balance}."
-                    + "All schedules have been deleted."
-                ),
-                from_email=secrets["from_address"],
-                password=secrets["gmail_app_password"],
+            email_sender.send_email(
                 to_email=secrets["to_address"],
+                subject=EmailSender.SUBJECT_ERROR_TYPE,
+                body=EmailSender.BODY_NO_BALANCE.format(balance),
             )
             delete_all_schedules()
             return RETURN_BODY
 
         if event["trigger_type"] == TriggerType.FIND_MATCHES:
             matches_scheduler = MatchesScheduler(bot=bot)
-            matches = matches_scheduler.schedule_matches()
-            if len(matches) < 1:
-                send_email(
-                    subject=EmailTemplate.SUBJECT_INFO_TYPE,
-                    body=EmailTemplate.BODY_INFO_TYPE.format(
-                        f"No suitable matches found for the next day."
-                    ),
-                    from_email=secrets["from_address"],
-                    password=secrets["gmail_app_password"],
+            matches_scheduler.schedule_matches()
+            if len(matches_scheduler.matches) < 1:
+                email_sender.send_email(
                     to_email=secrets["to_address"],
+                    subject=EmailSender.SUBJECT_INFO_TYPE,
+                    body=EmailSender.BODY_NO_MATCHES_FOUND,
                 )
             else:
-                send_email(
-                    subject=EmailTemplate.SUBJECT_INFO_TYPE,
-                    body=EmailTemplate.BODY_INFO_TYPE.format(
-                        f"Scheduled {len(matches)} matches for next day."
-                    ),
-                    from_email=secrets["from_address"],
-                    password=secrets["gmail_app_password"],
+                email_sender.send_email(
                     to_email=secrets["to_address"],
+                    subject=EmailSender.SUBJECT_INFO_TYPE,
+                    body=EmailSender.BODY_MATCHES_SCHEDULED.format(
+                        len(matches_scheduler.matches)
+                    ),
+                    events=matches_scheduler.matches_formatted,
                 )
         elif event["trigger_type"] == TriggerType.PLACE_BET:
             print(f"Placing bet with: {balance}")
@@ -103,29 +96,29 @@ def lambda_handler(event, context):
                 event_schedule_name=event["schedule_name"],
             )
             bet_placer.run()
-            send_email(
-                subject=EmailTemplate.SUBJECT_INFO_TYPE,
-                body=EmailTemplate.BODY_INFO_TYPE.format(
-                    f"Placed bet on {bet_placer.market_type_name} with bet amount: {bet_placer.bet_amount}.\n"
-                    + f"URL: {bet_placer.match_url}"
-                ),
-                from_email=secrets["from_address"],
-                password=secrets["gmail_app_password"],
+            email_sender.send_email(
                 to_email=secrets["to_address"],
+                subject=EmailSender.SUBJECT_INFO_TYPE,
+                body=EmailSender.BODY_PLACED_BET.format(event["match_name"]),
+                events=[
+                    {
+                        "name": event["match_name"],
+                        "bet_type": event["market_type_name"],
+                        "odd": bet_placer.bet_odd_value,
+                        "start_time": event["start_time"],
+                        "match_url": event["match_url"],
+                    }
+                ],
             )
     except Exception:
         traceback_path = "/tmp/traceback.txt"
         with open(traceback_path, "w") as f:
             f.write(traceback.format_exc())
 
-        send_email(
-            subject=EmailTemplate.SUBJECT_ERROR_TYPE,
-            body=EmailTemplate.BODY_ERROR_TYPE.format(
-                "Uncaught exception occured. See attachment."
-            ),
-            from_email=secrets["from_address"],
-            password=secrets["gmail_app_password"],
+        email_sender.send_email(
             to_email=secrets["to_address"],
+            subject=EmailSender.SUBJECT_ERROR_TYPE,
+            body=EmailSender.BODY_UNCAUGHT_EXCEPTION,
             attachment_path=traceback_path,
         )
         if event.get("schedule_name"):

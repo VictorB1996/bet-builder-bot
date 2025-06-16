@@ -132,10 +132,12 @@ class BaseBot:
             }
             self.session.cookies.update(cookies)
             response = self.session_send_request(
-                "GET",
-                self.bot_config["website"]["balance_endpoint"]
+                "GET", self.bot_config["website"]["balance_endpoint"]
             )
-            if response.status_code == 200 and response.json().get("status") == "LOGGED_IN":
+            if (
+                response.status_code == 200
+                and response.json().get("status") == "LOGGED_IN"
+            ):
                 break
             time.sleep(5)
         else:

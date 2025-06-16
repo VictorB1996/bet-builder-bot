@@ -34,11 +34,3 @@ class MatchesToBetDict(TypedDict):
 class TriggerType:
     FIND_MATCHES: str = "FIND_MATCHES"
     PLACE_BET: str = "PLACE_BET"
-
-
-class EmailTemplate:
-    SUBJECT_INFO_TYPE: str = "BOT-Info"
-    BODY_INFO_TYPE: str = "{}"
-
-    SUBJECT_ERROR_TYPE: str = "BOT-Error"
-    BODY_ERROR_TYPE: str = "{}"

@@ -30,8 +30,9 @@ class BetPlacer:
         self.market_type_name = market_type_name
         self.bet_amount = bet_amount or self.bot.get_available_balance()
         self.event_schedule_name = event_schedule_name
+        self.bet_odd_value = ""
 
-    def place_bet(self):
+    def place_bet(self) -> str:
         self.bot.visit_url(self.match_url)
         # wait some comfortable amount of time here.
         time.sleep(random.uniform(15, 30))
@@ -44,6 +45,13 @@ class BetPlacer:
             BET_OPTION_BUTTON[0],
             BET_OPTION_BUTTON[1].format(self.bet_option_id),
         )
+        bet_option_element = self.bot.get_element(
+            locator=bet_option_locator, parent=None
+        )
+        try:
+            self.bet_odd_value = bet_option_element.text.split("\n")[1]
+        except Exception:
+            self.bet_odd_value = ""
 
         bet_container = self.bot.get_element(locator=bet_container_locator)
         # Means the section is collapsed
