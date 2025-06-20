@@ -50,7 +50,8 @@ class EmailSender:
         subject: str,
         body: str,
         events: list[dict] = [],
-        attachment_path=None,
+        traceback_logs_path: str = None,
+        image_path: str = None,
     ) -> None:
         """Send the email message to the specified recipient"""
 
@@ -58,8 +59,11 @@ class EmailSender:
         self.message["From"] = self.from_email
         self.message["To"] = to_email
 
-        if attachment_path:
-            self.add_attachment(attachment_path)
+        if traceback_logs_path:
+            self.add_attachment(traceback_logs_path)
+
+        if image_path:
+            self.add_attachment(image_path)
 
         body = "<h3>{}</h3>".format(body)
         if events:

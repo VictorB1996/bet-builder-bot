@@ -115,11 +115,16 @@ def lambda_handler(event, context):
         with open(traceback_path, "w") as f:
             f.write(traceback.format_exc())
 
+        screenshot_path = bot.take_screenshot()
+        if not os.path.exists(screenshot_path):
+            screenshot_path = None
+    
         email_sender.send_email(
             to_email=secrets["to_address"],
             subject=EmailSender.SUBJECT_ERROR_TYPE,
             body=EmailSender.BODY_UNCAUGHT_EXCEPTION,
-            attachment_path=traceback_path,
+            traceback_logs_path=traceback_path,
+            image_path=screenshot_path
         )
         if event.get("schedule_name"):
             delete_schedule(event["schedule_name"])

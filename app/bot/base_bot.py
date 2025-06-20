@@ -1,3 +1,4 @@
+import uuid
 import time
 import random
 import requests
@@ -118,6 +119,17 @@ class BaseBot:
     def refresh_page(self) -> None:
         """Refresh the current page"""
         self.driver.refresh()
+
+    def take_screenshot(self) -> str:
+        """Take a screenshot of the current page and return the file path."""
+        screenshot_name = f"/tmp/screenshot_{uuid.uuid4().hex}.png"
+        try:
+            self.driver.save_screenshot(screenshot_name)
+            return screenshot_name
+        except Exception as e:
+            print(f"Error saving screenshot: {e}")
+        finally:
+            return screenshot_name
 
     def set_session_cookies(self, max_attempts: int = 5) -> None:
         """
