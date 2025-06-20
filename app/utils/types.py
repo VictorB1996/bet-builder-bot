@@ -29,6 +29,7 @@ class MatchesToBetDict(TypedDict):
     market_type_id: str
     market_type_name: str
     bet_option_id: str
+    odd_value: float
 
 
 class TriggerType:

@@ -210,6 +210,7 @@ class WebsiteBot(BaseBot):
                         "bet_option_id": suitable_bet[
                             "id"
                         ],  # The id of the bet option (example 1 / X / 2)
+                        "odd_value": suitable_bet["odds"],
                     }
                 )
 

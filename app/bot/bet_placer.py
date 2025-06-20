@@ -3,6 +3,7 @@ import random
 
 from bot.website import WebsiteBot
 from utils.scheduler import delete_schedule
+from utils.exceptions import EventOddsChangedError
 
 from bot.selectors import (
     BET_CONTAINER,
@@ -52,6 +53,12 @@ class BetPlacer:
             self.bet_odd_value = bet_option_element.text.split("\n")[1]
         except Exception:
             self.bet_odd_value = ""
+
+        if (
+            float(self.bet_odd_value)
+            > self.bot.bot_config["website"]["maximum_bet_odd"]
+        ):
+            raise EventOddsChangedError()
 
         bet_container = self.bot.get_element(locator=bet_container_locator)
         # Means the section is collapsed

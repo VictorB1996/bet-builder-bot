@@ -10,6 +10,7 @@ from utils._email import EmailSender
 from utils.secrets import get_secret
 from utils.scheduler import delete_all_schedules, delete_schedule
 from utils.types import TriggerType
+from utils.exceptions import EventOddsChangedError
 
 RETURN_BODY = {"statusCode": 200, "body": ""}
 
@@ -85,31 +86,41 @@ def lambda_handler(event, context):
                     events=matches_scheduler.matches_formatted,
                 )
         elif event["trigger_type"] == TriggerType.PLACE_BET:
-            print(f"Placing bet with: {balance}")
-            bet_placer = BetPlacer(
-                bot=bot,
-                match_url=event["match_url"],
-                market_type_id=event["market_type_id"],
-                bet_option_id=event["bet_option_id"],
-                market_type_name=event["market_type_name"],
-                bet_amount=balance,
-                event_schedule_name=event["schedule_name"],
-            )
-            bet_placer.run()
-            email_sender.send_email(
-                to_email=secrets["to_address"],
-                subject=EmailSender.SUBJECT_INFO_TYPE,
-                body=EmailSender.BODY_PLACED_BET.format(event["match_name"]),
-                events=[
-                    {
-                        "name": event["match_name"],
-                        "bet_type": event["market_type_name"],
-                        "odd": bet_placer.bet_odd_value,
-                        "start_time": event["start_time"],
-                        "match_url": event["match_url"],
-                    }
-                ],
-            )
+            try:
+                print(f"Placing bet with: {balance}")
+                bet_placer = BetPlacer(
+                    bot=bot,
+                    match_url=event["match_url"],
+                    market_type_id=event["market_type_id"],
+                    bet_option_id=event["bet_option_id"],
+                    market_type_name=event["market_type_name"],
+                    odd_value=event["odd_value"],
+                    bet_amount=balance,
+                    event_schedule_name=event["schedule_name"],
+                )
+                bet_placer.run()
+                email_sender.send_email(
+                    to_email=secrets["to_address"],
+                    subject=EmailSender.SUBJECT_INFO_TYPE,
+                    body=EmailSender.BODY_PLACED_BET.format(event["match_name"]),
+                    events=[
+                        {
+                            "name": event["match_name"],
+                            "bet_type": event["market_type_name"],
+                            "odd": bet_placer.bet_odd_value,
+                            "start_time": event["start_time"],
+                            "match_url": event["match_url"],
+                        }
+                    ],
+                )
+            except EventOddsChangedError:
+                email_sender.send_email(
+                    to_email=secrets["to_address"],
+                    subject=EmailSender.SUBJECT_ERROR_TYPE,
+                    body=EmailSender.BODY_CHANGED_ODD.format(
+                        event["match_name"], event["match_url"]
+                    ),
+                )
     except Exception:
         traceback_path = "/tmp/traceback.txt"
         with open(traceback_path, "w") as f:
@@ -118,13 +129,13 @@ def lambda_handler(event, context):
         screenshot_path = bot.take_screenshot()
         if not os.path.exists(screenshot_path):
             screenshot_path = None
-    
+
         email_sender.send_email(
             to_email=secrets["to_address"],
             subject=EmailSender.SUBJECT_ERROR_TYPE,
             body=EmailSender.BODY_UNCAUGHT_EXCEPTION,
             traceback_logs_path=traceback_path,
-            image_path=screenshot_path
+            image_path=screenshot_path,
         )
         if event.get("schedule_name"):
             delete_schedule(event["schedule_name"])

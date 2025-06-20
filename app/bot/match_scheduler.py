@@ -15,6 +15,7 @@ class MatchesScheduler:
             {
                 "name": match["name"],
                 "start_time": match["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+                "odd_value": match["odd_value"],
                 "match_url": self.bot.bot_config["website"]["match_base_url"].format(
                     match["category_seo_name"],
                     match["league_seo_name"],
@@ -46,5 +47,6 @@ class MatchesScheduler:
                     # Amazon EventBridge event that triggered the Lambda
                     "schedule_name": schedule_name,
                     "start_time": match["start_time"].strftime("%Y-%m-%d %H:%M:%S"),
+                    "odd_value": match["odd_value"],
                 },
             )
