@@ -52,7 +52,8 @@ class BetPlacer:
         try:
             self.bet_odd_value = bet_option_element.text.split("\n")[1]
         except Exception:
-            self.bet_odd_value = ""
+            # Shouldn't happen, but just in case
+            self.bet_odd_value = "0.0"
 
         if (
             float(self.bet_odd_value)

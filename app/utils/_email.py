@@ -18,7 +18,7 @@ class EmailSender:
     BODY_NOT_LOGGED_IN = "Bot was unable to log in."
     BODY_MATCHES_SCHEDULED = "Scheduled {} match(es) for next day."
     BODY_PLACED_BET = "Placed bet on match {}."
-    BODY_CHANGED_ODD = "Odds have changed for match {} - {}. Bet not placed."
+    BODY_CHANGED_ODD = "Odds have changed for match {} - {}. Bet not placed. Initial odd: {}, actual odd: {}."
     BODY_UNCAUGHT_EXCEPTION = (
         "An uncaught exception occurred. See attached log file for details."
     )

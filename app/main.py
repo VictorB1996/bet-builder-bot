@@ -94,7 +94,6 @@ def lambda_handler(event, context):
                     market_type_id=event["market_type_id"],
                     bet_option_id=event["bet_option_id"],
                     market_type_name=event["market_type_name"],
-                    odd_value=event["odd_value"],
                     bet_amount=balance,
                     event_schedule_name=event["schedule_name"],
                 )
@@ -118,7 +117,10 @@ def lambda_handler(event, context):
                     to_email=secrets["to_address"],
                     subject=EmailSender.SUBJECT_ERROR_TYPE,
                     body=EmailSender.BODY_CHANGED_ODD.format(
-                        event["match_name"], event["match_url"]
+                        event["match_name"],
+                        event["match_url"],
+                        event["odd_value"],
+                        bet_placer.bet_odd_value,
                     ),
                 )
     except Exception:
