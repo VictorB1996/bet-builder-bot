@@ -37,6 +37,20 @@ def delete_schedule(schedule_name: str) -> dict:
     except Exception:
         pass
 
+def disable_schedule(schedule_name: str) -> dict:
+    """Function to disable a schedule for the Lambda function."""
+    try:
+        schedule_client = boto3.client("scheduler")
+        response = schedule_client.update_schedule(
+            Name=schedule_name,
+            State="DISABLED",
+        )
+        print(f"Schedule {schedule_name} disabled.")
+        return response
+    except Exception as e:
+        print(f"Failed to disable schedule {schedule_name}: {e}")
+        return {}
+
 
 def delete_all_schedules():
     """
@@ -47,6 +61,9 @@ def delete_all_schedules():
     schedule_client = boto3.client("scheduler")
     for schedule in schedule_client.list_schedules()["Schedules"]:
         try:
+            if schedule["Name"] == "bet-builder-gather-matches":
+                disable_schedule(schedule["Name"])
+                continue
             schedule_client.delete_schedule(Name=schedule["Name"])
             print(f"Schedule {schedule['Name']} deleted.")
         except Exception:

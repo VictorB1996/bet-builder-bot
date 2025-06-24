@@ -2,7 +2,6 @@ import time
 import random
 
 from bot.website import WebsiteBot
-from utils.scheduler import delete_schedule
 from utils.exceptions import EventOddsChangedError
 
 from bot.selectors import (
@@ -21,7 +20,6 @@ class BetPlacer:
         market_type_id: str,
         bet_option_id: str,
         market_type_name: str,
-        event_schedule_name: str = "",
         bet_amount: float = 0.0,
     ):
         self.bot = bot
@@ -30,7 +28,6 @@ class BetPlacer:
         self.bet_option_id = bet_option_id
         self.market_type_name = market_type_name
         self.bet_amount = bet_amount or self.bot.get_available_balance()
-        self.event_schedule_name = event_schedule_name
         self.bet_odd_value = ""
 
     def place_bet(self) -> str:
@@ -86,5 +83,3 @@ class BetPlacer:
 
     def run(self):
         self.place_bet()
-        if self.event_schedule_name:
-            delete_schedule(schedule_name=self.event_schedule_name)

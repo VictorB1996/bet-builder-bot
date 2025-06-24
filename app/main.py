@@ -64,6 +64,8 @@ def lambda_handler(event, context):
                 subject=EmailSender.SUBJECT_ERROR_TYPE,
                 body=EmailSender.BODY_NO_BALANCE.format(balance),
             )
+            # All schedules are deleted. The main one which gather matches
+            # is disabled only until human intervention.
             delete_all_schedules()
             return RETURN_BODY
 
@@ -95,7 +97,6 @@ def lambda_handler(event, context):
                     bet_option_id=event["bet_option_id"],
                     market_type_name=event["market_type_name"],
                     bet_amount=balance,
-                    event_schedule_name=event["schedule_name"],
                 )
                 bet_placer.run()
                 email_sender.send_email(
@@ -139,9 +140,12 @@ def lambda_handler(event, context):
             traceback_logs_path=traceback_path,
             image_path=screenshot_path,
         )
-        if event.get("schedule_name"):
-            delete_schedule(event["schedule_name"])
     finally:
         bot.close()
+        # This should only delete TriggerType.PLACE_BET events,
+        # since TriggerType.FIND_MATCHES does not send the schedule name 
+        # in the event.
+        if event.get("schedule_name"):
+            delete_schedule(event["schedule_name"])
 
     return RETURN_BODY
