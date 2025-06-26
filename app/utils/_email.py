@@ -27,11 +27,6 @@ class EmailSender:
         self.from_email = from_email
         self.password = password
 
-        self.server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-        self.server.login(from_email, password)
-
-        self.message = MIMEMultipart("alternative")
-
     def add_attachment(self, attachment_path: str) -> None:
         """Add an attachment to the email message"""
         if attachment_path and os.path.exists(attachment_path):
@@ -45,7 +40,7 @@ class EmailSender:
                 )
                 self.message.attach(part)
 
-    def send_email(
+    def get_new_message(
         self,
         to_email: str,
         subject: str,
@@ -53,9 +48,9 @@ class EmailSender:
         events: list[dict] = [],
         traceback_logs_path: str = None,
         image_path: str = None,
-    ) -> None:
-        """Send the email message to the specified recipient"""
-
+    ) -> MIMEMultipart:
+        """Create a new email message"""
+        self.message = MIMEMultipart("alternative")
         self.message["Subject"] = subject
         self.message["From"] = self.from_email
         self.message["To"] = to_email
@@ -91,14 +86,29 @@ class EmailSender:
 
         body_content = MIMEText(body, "html")
         self.message.attach(body_content)
+        return self.message
 
-        self.server.sendmail(self.from_email, to_email, self.message.as_string())
+    def send_email(
+        self,
+        to_email: str,
+        subject: str,
+        body: str,
+        events: list[dict] = [],
+        traceback_logs_path: str = None,
+        image_path: str = None,
+    ) -> None:
+        """Send the email message to the specified recipient"""
+        new_message = self.get_new_message(
+            to_email=to_email,
+            subject=subject,
+            body=body,
+            events=events,
+            traceback_logs_path=traceback_logs_path,
+            image_path=image_path,
+        )
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(self.from_email, self.password)
+            server.sendmail(self.from_email, to_email, new_message.as_string())
+
         print("Email sent successfully.")
-        self.close()
-
-    def close(self) -> None:
-        """Close the SMTP server connection"""
-        try:
-            self.server.quit()
-        except Exception as e:
-            print(f"Error while closing SMTP connection: {e}")

@@ -58,16 +58,6 @@ def lambda_handler(event, context):
 
         balance = bot.get_available_balance()
         print(f"Available balance: {balance}")
-        if balance < 2.00:
-            email_sender.send_email(
-                to_email=secrets["to_address"],
-                subject=EmailSender.SUBJECT_ERROR_TYPE,
-                body=EmailSender.BODY_NO_BALANCE.format(balance),
-            )
-            # All schedules are deleted. The main one which gather matches
-            # is disabled only until human intervention.
-            delete_all_schedules()
-            return RETURN_BODY
 
         if event["trigger_type"] == TriggerType.FIND_MATCHES:
             matches_scheduler = MatchesScheduler(bot=bot)
@@ -89,6 +79,17 @@ def lambda_handler(event, context):
                 )
         elif event["trigger_type"] == TriggerType.PLACE_BET:
             try:
+                if balance < 2.00:
+                    email_sender.send_email(
+                        to_email=secrets["to_address"],
+                        subject=EmailSender.SUBJECT_ERROR_TYPE,
+                        body=EmailSender.BODY_NO_BALANCE.format(balance),
+                    )
+                    # All schedules are deleted. The main one which gather matches
+                    # is disabled only until human intervention.
+                    delete_all_schedules()
+                    return RETURN_BODY
+
                 print(f"Placing bet with: {balance}")
                 bet_placer = BetPlacer(
                     bot=bot,
@@ -114,6 +115,7 @@ def lambda_handler(event, context):
                     ],
                 )
             except EventOddsChangedError:
+                print("Odds have changed, not placing bet.")
                 email_sender.send_email(
                     to_email=secrets["to_address"],
                     subject=EmailSender.SUBJECT_ERROR_TYPE,
@@ -143,7 +145,7 @@ def lambda_handler(event, context):
     finally:
         bot.close()
         # This should only delete TriggerType.PLACE_BET events,
-        # since TriggerType.FIND_MATCHES does not send the schedule name 
+        # since TriggerType.FIND_MATCHES does not send the schedule name
         # in the event.
         if event.get("schedule_name"):
             delete_schedule(event["schedule_name"])

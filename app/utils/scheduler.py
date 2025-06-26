@@ -37,6 +37,7 @@ def delete_schedule(schedule_name: str) -> dict:
     except Exception:
         pass
 
+
 def disable_schedule(schedule_name: str) -> dict:
     """Function to disable a schedule for the Lambda function."""
     try:
